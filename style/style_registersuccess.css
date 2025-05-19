@@ -1,0 +1,109 @@
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+.success-container {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+.success-icon {
+    font-size: 80px;
+    color: #28a745;
+    margin-bottom: 20px;
+    animation: scaleIn 0.5s ease-in-out;
+}
+.success-title {
+    color: #343a40;
+    margin-bottom: 20px;
+    font-size: 32px;
+    animation: fadeInUp 0.5s ease-in-out 0.2s both;
+}
+.success-message {
+    color: #6c757d;
+    margin-bottom: 30px;
+    animation: fadeInUp 0.5s ease-in-out 0.4s both;
+}
+.next-steps {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    animation: fadeInUp 0.5s ease-in-out 0.6s both;
+}
+.next-steps h3 {
+    color: #495057;
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+.next-steps ul {
+    text-align: left;
+    list-style-type: none;
+    padding: 0;
+}
+.next-steps ul li {
+    margin-bottom: 10px;
+    padding-left: 30px;
+    position: relative;
+    color: #6c757d;
+}
+.next-steps ul li i {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    color: #28a745;
+}
+.action-buttons {
+    animation: fadeInUp 0.5s ease-in-out 0.8s both;
+}
+.action-button {
+    background-color: #0056b3;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 10px;
+}
+.action-button:hover {
+    background-color: #004494;
+    color: white;
+    transform: translateY(-2px);
+}
+.action-button.secondary {
+    background-color: #6c757d;
+}
+.action-button.secondary:hover {
+    background-color: #5a6268;
+}
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.countdown {
+    font-size: 14px;
+    color: #6c757d;
+    margin-top: 20px;
+    animation: fadeInUp 0.5s ease-in-out 1s both;
+}
