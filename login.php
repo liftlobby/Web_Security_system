@@ -1,9 +1,11 @@
-
 <?php
 session_start();
 require_once 'config/database.php';
 require_once 'includes/PasswordPolicy.php';
 require_once 'includes/MessageUtility.php';
+require_once 'includes/RecaptchaVerifier.php';
+require_once 'includes/OtpManager.php';
+require_once 'includes/NotificationManager.php';
 
 // If user is already logged in, redirect to index
 if (isset($_SESSION['user_id'])) {
@@ -11,12 +13,38 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
+if (isset($_GET['action']) && $_GET['action'] === 'resend_otp') {
+    if (isset($_SESSION['temp_user_id_for_otp']) && isset($_SESSION['temp_user_email_for_otp']) && isset($_SESSION['temp_username_for_otp'])) {
+        $userId = $_SESSION['temp_user_id_for_otp'];
+        $userEmail = $_SESSION['temp_user_email_for_otp'];
+        $username = $_SESSION['temp_username_for_otp'];
+
+        $otp = OtpManager::generateOtp();
+        OtpManager::storeOtp($userId, $otp);
+        
+        $notificationManager = new NotificationManager($conn);
+        if ($notificationManager->sendOtpEmail($userEmail, $username, $otp)) {
+            MessageUtility::setSuccessMessage("A new OTP has been sent to your email.");
+        } else {
+            MessageUtility::setErrorMessage("Failed to send OTP. Please try again.");
+        }
+        header("Location: verify_otp.php");
+        exit();
+    } else {
+        MessageUtility::setErrorMessage("Could not resend OTP. Please try logging in again.");
+    }
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Sanitize inputs
     $username = htmlspecialchars(trim($_POST['username'] ?? ''), ENT_QUOTES, 'UTF-8');
     $password = $_POST['password'] ?? '';
+    $recaptcha_token = $_POST['recaptcha_token'] ?? '';
 
-    if (!$username || !$password) {
+    // Verify reCAPTCHA
+    if (!RecaptchaVerifier::verify($recaptcha_token, $_SERVER['REMOTE_ADDR'])) {
+        MessageUtility::setErrorMessage("reCAPTCHA verification failed. Please try again.");
+    } elseif (!$username || !$password) {
         MessageUtility::setErrorMessage(MessageUtility::getCommonErrorMessage('required_fields'));
     } else {
         // Start transaction
@@ -44,36 +72,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 // Verify password
                 if (PasswordPolicy::verifyPassword($password, $user['password'])) {
-                    // Check if password has expired
-                    if (PasswordPolicy::isPasswordExpired($user['last_password_change'])) {
-                        $_SESSION['temp_user_id'] = $user['user_id'];
-                        $_SESSION['password_expired'] = true;
-                        header("Location: change_password.php");
-                        exit();
-                    }
+                    // Password is correct, now initiate OTP flow
+                    $otp = OtpManager::generateOtp();
+                    OtpManager::storeOtp($user['user_id'], $otp);
 
-                    // Check if password needs rehash
-                    if (PasswordPolicy::needsRehash($user['password'])) {
-                        $new_hash = PasswordPolicy::hashPassword($password);
-                        $update_stmt = $conn->prepare("UPDATE users SET password = ? WHERE user_id = ?");
-                        $update_stmt->bind_param("si", $new_hash, $user['user_id']);
-                        $update_stmt->execute();
+                    // Store user details temporarily for OTP verification page
+                    $_SESSION['temp_user_id_for_otp'] = $user['user_id'];
+                    $_SESSION['temp_username_for_otp'] = $user['username'];
+                    $_SESSION['temp_user_email_for_otp'] = $user['email'];
+
+                    $notificationManager = new NotificationManager($conn);
+                    if ($notificationManager->sendOtpEmail($user['email'], $user['username'], $otp)) {
+                        MessageUtility::setSuccessMessage("OTP sent to your email: " . htmlspecialchars($user['email']));
+                        header("Location: verify_otp.php");
+                        exit();
+                    } else {
+                        OtpManager::clearOtp($user['user_id']);
+                        throw new Exception("Failed to send OTP. Please try again.");
                     }
-                    
-                    // Reset failed attempts on successful login
-                    $stmt = $conn->prepare("UPDATE users SET failed_attempts = 0, locked_until = NULL, last_login = NOW() WHERE user_id = ?");
-                    $stmt->bind_param("i", $user['user_id']);
-                    $stmt->execute();
-                    
-                    // Set session variables
-                    $_SESSION['user_id'] = $user['user_id'];
-                    $_SESSION['username'] = $user['username'];
-                    $_SESSION['last_activity'] = time();
-                    $_SESSION['expire_time'] = 30 * 60; // 30 minutes
-                    
-                    $conn->commit();
-                    header("Location: index.php");
-                    exit();
                 } else {
                     // Increment failed attempts
                     $failed_attempts = $user['failed_attempts'] + 1;
@@ -121,6 +137,7 @@ if (isset($_SESSION['last_activity']) && time() - $_SESSION['last_activity'] > $
     <title>Login - Railway System</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style/style_login.css">
+    <script src="https://www.google.com/recaptcha/api.js?render=<?php echo RecaptchaVerifier::getSiteKey(); ?>"></script>
 </head>
 <body>
     <?php require_once 'Head_and_Foot/header.php'; ?>
@@ -129,7 +146,7 @@ if (isset($_SESSION['last_activity']) && time() - $_SESSION['last_activity'] > $
         <h2>Login</h2>
         <?php echo MessageUtility::displayMessages(); ?>
 
-        <form action="login.php" method="post" onsubmit="return validateForm()">
+        <form action="login.php" method="post" onsubmit="return validateForm()" id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required>
@@ -139,7 +156,7 @@ if (isset($_SESSION['last_activity']) && time() - $_SESSION['last_activity'] > $
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
-
+            <input type="hidden" name="recaptcha_token" id="recaptcha_token">
             <button type="submit" class="login-button">Login</button>
         </form>
 
@@ -163,7 +180,14 @@ if (isset($_SESSION['last_activity']) && time() - $_SESSION['last_activity'] > $
             return false;
         }
         
-        return true;
+        // reCAPTCHA v3 execution
+        grecaptcha.ready(function() {
+            grecaptcha.execute('<?php echo RecaptchaVerifier::getSiteKey(); ?>', {action: 'login'}).then(function(token) {
+                document.getElementById('recaptcha_token').value = token;
+                document.getElementById('loginForm').submit(); // Submit the form after getting token
+            });
+        });
+        return false; // Prevent default form submission, will be handled by reCAPTCHA callback
     }
     </script>
 

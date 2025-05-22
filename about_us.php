@@ -21,7 +21,7 @@ session_start();
         <section class="history">
             <h2>History of Railway</h2>
             <p>
-                Place your history of railway here
+                The history of railway in Malaysia dates back to the 1880s when the first railway line was built to connect the tin mines of Perak to the port of Penang.
             </p>
         </section>
         

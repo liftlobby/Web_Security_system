@@ -3,6 +3,7 @@ session_start();
 require_once '../config/database.php';
 require_once '../includes/PasswordPolicy.php';
 require_once '../includes/MessageUtility.php';
+require_once '../includes/RecaptchaVerifier.php';
 
 // Enable error reporting for debugging
 error_reporting(E_ALL);
@@ -12,8 +13,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Use htmlspecialchars instead of deprecated FILTER_SANITIZE_STRING
     $username = htmlspecialchars(trim($_POST['username'] ?? ''), ENT_QUOTES, 'UTF-8');
     $password = $_POST['password'] ?? '';
+    $recaptcha_token = $_POST['recaptcha_token'] ?? '';
     
-    if (!$username || !$password) {
+    // Verify reCAPTCHA first
+    if (!RecaptchaVerifier::verify($recaptcha_token, $_SERVER['REMOTE_ADDR'])) {
+        MessageUtility::setErrorMessage("reCAPTCHA verification failed. Please try again.");
+    } elseif (!$username || !$password) {
         MessageUtility::setErrorMessage(MessageUtility::getCommonErrorMessage('required_fields'));
     } else {
         // Start transaction
@@ -97,6 +102,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Staff Login - KTM Railway System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../style/style_login.css">
+    <script src="https://www.google.com/recaptcha/api.js?render=<?php echo RecaptchaVerifier::getSiteKey(); ?>"></script>
     <style>
         body {
             background-color: #f0f8ff;
@@ -173,7 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             <?php echo MessageUtility::displayMessages(); ?>
             
-            <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+            <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" onsubmit="return validateStaffForm()" id="staffLoginForm">
                 <div class="form-group">
                     <label for="username">Username:</label>
                     <input type="text" class="form-control" id="username" name="username" required>
@@ -184,11 +191,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <input type="password" class="form-control" id="password" name="password" required>
                 </div>
                 
+                <input type="hidden" name="recaptcha_token" id="recaptcha_token">
+                
                 <button type="submit" class="btn btn-login">Login</button>
             </form>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function validateStaffForm() {
+        var username = document.getElementById('username').value.trim();
+        var password = document.getElementById('password').value;
+
+        if (username === '') {
+            alert('Please enter your username');
+            return false;
+        }
+
+        if (password === '') {
+            alert('Please enter your password');
+            return false;
+        }
+
+        // reCAPTCHA v3 execution
+        grecaptcha.ready(function() {
+            grecaptcha.execute('<?php echo RecaptchaVerifier::getSiteKey(); ?>', {action: 'staff_login'}).then(function(token) {
+                document.getElementById('recaptcha_token').value = token;
+                document.getElementById('staffLoginForm').submit(); // Submit the form after getting token
+            });
+        });
+        return false; // Prevent default form submission
+    }
+    </script>
 </body>
 </html>

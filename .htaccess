@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Rule to redirect HTTP to HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Add other rules below if needed, for example, for routing or security headers
+</IfModule>
+
+# If you have other non-rewrite rules, they can go outside the IfModule block 

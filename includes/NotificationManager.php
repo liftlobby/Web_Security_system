@@ -1,4 +1,3 @@
-
 <?php
 // Include PHPMailer files
 require_once __DIR__ . '/../lib/PHPMailer/src/PHPMailer.php';
@@ -13,16 +12,13 @@ class NotificationManager {
     private $conn;
     private $mailer;
 
-    public function __construct($conn) {
-        if (!$conn) {
-            require_once __DIR__ . '/../config/database.php';
-        }
-        $this->conn = $conn ?? $GLOBALS['conn'];
+    public function __construct($db_connection) {
+        $this->conn = $db_connection;
+        $this->mailer = new PHPMailer(true);
         $this->initializeMailer();
     }
 
     private function initializeMailer() {
-        $this->mailer = new PHPMailer(true);
         $this->mailer->isSMTP();
         $this->mailer->Host = 'smtp.gmail.com';
         $this->mailer->SMTPAuth = true;
@@ -576,6 +572,42 @@ class NotificationManager {
             return $this->mailer->send();
         } catch (Exception $e) {
             error_log("Error sending schedule change email: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function sendOtpEmail($userEmail, $username, $otp) {
+        $subject = "Your One-Time Password (OTP) for Railway System";
+        $logoUrl = 'https://example.com/path/to/your/logo.png'; // Replace with your actual logo URL
+
+        $htmlBody = "
+        <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+            <div style='max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;'>
+                <div style='text-align: center; margin-bottom: 20px;'>
+                    <img src='{$logoUrl}' alt='Railway System Logo' style='max-width: 150px;'>
+                </div>
+                <h2>Railway System - Email OTP Verification</h2>
+                <p>Dear {$username},</p>
+                <p>Your One-Time Password (OTP) to complete your login is:</p>
+                <p style='font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 2px; margin: 20px 0; padding: 10px; background-color: #f0f0f0; border-radius: 3px;'>
+                    {$otp}
+                </p>
+                <p>This OTP is valid for 10 minutes. Please do not share this OTP with anyone.</p>
+                <p>If you did not request this OTP, please ignore this email or contact our support team immediately.</p>
+                <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
+                <p style='font-size: 0.9em; color: #777; text-align: center;'>
+                    This is an automated message. Please do not reply to this email.<br>
+                    &copy; " . date("Y") . " Railway System. All rights reserved.
+                </p>
+            </div>
+        </div>";
+
+        $textBody = "Dear {$username}, Your One-Time Password (OTP) to complete your login is: {$otp}. This OTP is valid for 10 minutes. Do not share it.";
+
+        try {
+            return $this->sendEmail($userEmail, $subject, $htmlBody, $textBody);
+        } catch (Exception $e) {
+            error_log("OTP Email sending failed: " . $e->getMessage());
             return false;
         }
     }
