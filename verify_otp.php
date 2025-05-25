@@ -31,8 +31,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $_SESSION['user_id'] = $temp_user_id;
         $_SESSION['username'] = $_SESSION['temp_username_for_otp']; // Retrieve username stored earlier
-        $_SESSION['last_activity'] = time();
-        $_SESSION['expire_time'] = 30 * 60; // 30 minutes
+        $_SESSION['CREATED'] = time(); 
+        $_SESSION['LAST_ACTIVITY'] = time(); 
 
         // Clear temporary OTP session variables
         OtpManager::clearOtp($temp_user_id);

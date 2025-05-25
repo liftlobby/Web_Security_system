@@ -1,5 +1,7 @@
 <?php
-session_start();
+require_once 'includes/Session.php';
+Session::initialize();
+
 require_once 'config/database.php';
 require_once 'includes/PasswordPolicy.php';
 require_once 'includes/MessageUtility.php';
@@ -118,15 +120,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             MessageUtility::setErrorMessage($e->getMessage());
         }
     }
-}
-
-// Check for session timeout
-if (isset($_SESSION['last_activity']) && time() - $_SESSION['last_activity'] > $_SESSION['expire_time']) {
-    session_unset();
-    session_destroy();
-    MessageUtility::setWarningMessage(MessageUtility::getCommonErrorMessage('session_expired'));
-    header("Location: login.php");
-    exit();
 }
 ?>
 <!DOCTYPE html>
