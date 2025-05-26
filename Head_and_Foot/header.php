@@ -12,8 +12,6 @@ if (isset($_SESSION['user_id'])) {
         $profile_picture = $result->fetch_assoc()['profile_picture'];
     }
 }
-
-var_dump($_SESSION);
 ?>
 <!DOCTYPE html>
 <html lang="en">

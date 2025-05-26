@@ -1,6 +1,7 @@
 
 <?php
-session_start();
+require_once 'includes/Session.php';
+Session::initialize();
 require_once 'Head_and_Foot/header.php';
 require_once 'config/database.php';
 

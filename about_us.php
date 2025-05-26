@@ -1,6 +1,7 @@
 
 <?php
-session_start();
+require_once 'includes/Session.php';
+Session::initialize();
 ?>
 <!DOCTYPE html>
 <html lang="en">

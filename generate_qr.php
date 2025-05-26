@@ -1,7 +1,8 @@
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-session_start();
+require_once 'includes/Session.php';
+Session::initialize();
 require_once 'config/database.php';
 require_once 'phpqrcode/qrlib.php';
 

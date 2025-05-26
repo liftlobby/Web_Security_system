@@ -1,6 +1,7 @@
 
 <?php
-session_start();
+require_once 'includes/Session.php';
+Session::initialize();
 require_once 'config/database.php';
 
 // Set timezone to match your server's timezone

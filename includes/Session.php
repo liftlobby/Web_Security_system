@@ -22,7 +22,7 @@ class Session {
         // Set session created time for the first time
         $_SESSION['CREATED'] = time();
       } else {
-        $session_lifetime = 10 * 60; // 10 minutes 
+        $session_lifetime = 5;
         // Check if session has expired
         if (time() - $_SESSION['CREATED'] > $session_lifetime) {            
           // change session ID for the current session and invalidate old session ID
@@ -35,7 +35,7 @@ class Session {
       if (empty($_SESSION['LAST_ACTIVITY'])) {
         $_SESSION['LAST_ACTIVITY'] = time();
       } else {
-        $session_timeout = 30 * 60; // Temporarily increased to 10 minutes for testing
+        $session_timeout = 30 * 60;
         if (time() - $_SESSION['LAST_ACTIVITY'] > $session_timeout) {
           self::destroy(); // 
           session_start(); 
