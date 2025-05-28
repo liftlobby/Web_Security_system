@@ -1,6 +1,7 @@
 
 <?php
-session_start();
+require_once 'includes/Session.php';
+Session::initialize();
 
 // If there's no success message, redirect to home
 if (!isset($_SESSION['registration_success'])) {
