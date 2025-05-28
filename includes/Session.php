@@ -17,12 +17,12 @@ class Session {
 
       session_start();
 
-        // Regenerate session ID every 30 minutes to prevent session fixation
+        // Regenerate session ID every 10 minutes to prevent session fixation
       if (empty($_SESSION['CREATED'])) {
         // Set session created time for the first time
         $_SESSION['CREATED'] = time();
       } else {
-        $session_lifetime = 5;
+        $session_lifetime = 10 * 60;
         // Check if session has expired
         if (time() - $_SESSION['CREATED'] > $session_lifetime) {            
           // change session ID for the current session and invalidate old session ID
