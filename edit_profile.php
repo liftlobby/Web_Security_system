@@ -1,7 +1,11 @@
 
 <?php
 require_once 'includes/Session.php';
-Session::initialize();
+if (!Session::initialize()) {
+    // Session was timed out, user will be redirected
+    exit();
+}
+
 require_once 'config/database.php';
 require_once 'includes/PasswordHandler.php';
 
@@ -169,6 +173,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Edit Profile - Railway System</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style/style_editprofile.css">
+    <!-- Session Management -->
+    <script src="js/session-manager.js"></script>
 </head>
 <body>
     <?php require_once 'Head_and_Foot/header.php'; ?>

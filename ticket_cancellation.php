@@ -1,7 +1,9 @@
 
 <?php
 require_once 'includes/Session.php';
-Session::initialize();
+if (!Session::initialize()) {
+    exit();
+}
 require_once 'config/database.php';
 require_once 'includes/NotificationManager.php';
 
@@ -291,9 +293,10 @@ $late_tickets_result = $late_tickets_stmt->get_result();
         window.onclick = function(event) {
             const modal = document.getElementById('cancelModal');
             if (event.target == modal) {
-                modal.style.display = "none";
+        modal.style.display = "none";
             }
         }
     </script>
+    <script src="js/session-manager.js"></script>
 </body>
 </html>

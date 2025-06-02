@@ -1,7 +1,17 @@
 
 <?php
 require_once 'includes/Session.php';
-Session::initialize();
+if (!Session::initialize()) {
+    // Session was timed out, user will be redirected
+    exit();
+}
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
 require_once 'config/database.php';
 
 // Set timezone to match your server's timezone
@@ -40,6 +50,8 @@ if ($result) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style/style_ticketing.css">
+    <!-- Session Management -->
+    <script src="js/session-manager.js"></script>
     <style>
         /* Emergency override styles */
         main.schedule-container {

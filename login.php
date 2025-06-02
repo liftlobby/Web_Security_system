@@ -2,6 +2,9 @@
 require_once 'includes/Session.php';
 Session::initialize();
 
+// Check for timeout message
+$timeout_info = Session::displayTimeoutMessage();
+
 require_once 'config/database.php';
 require_once 'includes/PasswordPolicy.php';
 require_once 'includes/MessageUtility.php';
@@ -133,10 +136,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="https://www.google.com/recaptcha/api.js?render=<?php echo RecaptchaVerifier::getSiteKey(); ?>"></script>
 </head>
 <body>
-    <?php require_once 'Head_and_Foot/header.php'; ?>
-
-    <div class="login-container">
+    <?php require_once 'Head_and_Foot/header.php'; ?>    <div class="login-container">
         <h2>Login</h2>
+        
+        <?php if ($timeout_info): ?>
+            <div class="alert alert-<?php echo htmlspecialchars($timeout_info['type']); ?>" style="background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
+                <strong>⚠️ Session Timeout:</strong> <?php echo htmlspecialchars($timeout_info['message']); ?>
+            </div>
+        <?php endif; ?>
+        
         <?php echo MessageUtility::displayMessages(); ?>
 
         <form action="login.php" method="post" onsubmit="return validateForm()" id="loginForm">

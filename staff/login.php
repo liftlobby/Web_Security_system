@@ -1,5 +1,10 @@
 <?php
-session_start();
+require_once '../includes/Session.php';
+Session::initialize();
+
+// Check for timeout message
+$timeout_info = Session::displayTimeoutMessage();
+
 require_once '../config/database.php';
 require_once '../includes/PasswordPolicy.php';
 require_once '../includes/MessageUtility.php';
@@ -177,6 +182,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <img src="../image/train_icon.png" alt="Railway Logo">
                 <h2>Staff Login</h2>
             </div>
+            
+            <?php if ($timeout_info): ?>
+                <div class="alert alert-<?php echo htmlspecialchars($timeout_info['type']); ?>" style="background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
+                    <strong>⚠️ Session Timeout:</strong> <?php echo htmlspecialchars($timeout_info['message']); ?>
+                </div>
+            <?php endif; ?>
             
             <?php echo MessageUtility::displayMessages(); ?>
             

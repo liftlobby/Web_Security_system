@@ -1,7 +1,7 @@
 <?php
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+require_once 'includes/Session.php';
+Session::initialize();
+
 require_once 'config/database.php';
 require_once 'includes/MessageUtility.php';
 require_once 'includes/OtpManager.php';
@@ -70,6 +70,8 @@ $user_email = $_SESSION['temp_user_email_for_otp'] ?? 'your email'; // For displ
     <title>Verify OTP - Railway System</title>
     <link rel="stylesheet" href="style/style_login.css"> <!-- Assuming a similar style to login -->
     <script src="https://www.google.com/recaptcha/api.js?render=<?php echo RecaptchaVerifier::getSiteKey(); ?>"></script>
+    <!-- Session Management -->
+    <script src="js/session-manager.js"></script>
     <style>
         .otp-container {
             max-width: 400px;

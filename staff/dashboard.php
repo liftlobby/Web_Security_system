@@ -1,5 +1,10 @@
 <?php
-session_start();
+require_once '../includes/Session.php';
+if (!Session::initialize()) {
+    // Session was timed out, user will be redirected
+    exit();
+}
+
 require_once '../config/database.php';
 
 // Check if staff is logged in
@@ -51,6 +56,8 @@ $recent_tickets = $conn->query($sql);
     <title>Dashboard - Railway System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+    <!-- Session Management -->
+    <script src="../js/session-manager.js"></script>
     <style>
         .sidebar {
             height: 100vh;

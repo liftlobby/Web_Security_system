@@ -10,6 +10,8 @@ Session::initialize();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <!-- Session Management -->
+    <script src="js/session-manager.js"></script>
     <style>
         .alert {
             padding: 15px;

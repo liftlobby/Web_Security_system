@@ -1,7 +1,11 @@
 
 <?php
 require_once 'includes/Session.php';
-Session::initialize();
+if (!Session::initialize()) {
+    // Session was timed out, user will be redirected
+    exit();
+}
+
 require_once 'config/database.php';
 require_once 'includes/NotificationManager.php';
 
@@ -34,6 +38,8 @@ $unreadCount = count($notifications);
     <title>Notifications - Railway System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <!-- Session Management -->
+    <script src="js/session-manager.js"></script>
     <style>
         .notification-item {
             border-left: 4px solid #007bff;
