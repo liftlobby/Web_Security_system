@@ -1,7 +1,9 @@
 
 <?php
 require_once 'includes/Session.php';
-Session::initialize();
+if (!Session::initialize()) {
+    exit();
+}
 require_once 'config/database.php';
 
 // Check if user is logged in

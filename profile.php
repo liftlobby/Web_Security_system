@@ -1,7 +1,11 @@
 
 <?php
 require_once 'includes/Session.php';
-Session::initialize();
+if (!Session::initialize()) {
+    // Session was timed out, user will be redirected
+    exit();
+}
+
 require_once 'config/database.php';
 
 // Check if user is logged in
@@ -80,6 +84,8 @@ if (!$user) {
     <title>My Profile - Railway System</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style/style_profile.css">
+    <!-- Session Management -->
+    <script src="js/session-manager.js"></script>
     <style>
 
     </style>

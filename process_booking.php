@@ -1,7 +1,9 @@
 
 <?php
 require_once 'includes/Session.php';
-Session::initialize();
+if (!Session::initialize()) {
+    exit();
+}
 require_once 'config/database.php';
 require_once 'includes/TokenManager.php';
 require_once 'includes/NotificationManager.php';

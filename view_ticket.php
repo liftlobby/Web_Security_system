@@ -1,6 +1,10 @@
 <?php
 require_once 'includes/Session.php';
-Session::initialize();
+if (!Session::initialize()) {
+    // Session was timed out, user will be redirected
+    exit();
+}
+
 require_once 'config/database.php';
 
 // Check if user is logged in
@@ -45,6 +49,8 @@ $ticket = $result->fetch_assoc();
     <title>View Ticket - Railway System</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style/style_viewticket.css">
+    <!-- Session Management -->
+    <script src="js/session-manager.js"></script>
 </head>
 <body>
     <?php require_once 'Head_and_Foot/header.php'; ?>

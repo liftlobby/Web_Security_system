@@ -1,9 +1,18 @@
 
 <?php
 require_once 'includes/Session.php';
-Session::initialize();
+if (!Session::initialize()) {
+    exit();
+}
 require_once 'config/database.php';
 require_once 'includes/MessageUtility.php';
+
+// Handle clearing of last report (for "Submit Another Report" functionality)
+if (isset($_GET['new']) && $_GET['new'] == '1') {
+    unset($_SESSION['last_report']);
+    header("Location: report.php");
+    exit();
+}
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -92,6 +101,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 // Get report details from session if available
 $lastReport = $_SESSION['last_report'] ?? null;
 
+// Clear the last report from session if it's older than 10 minutes to prevent permanent blocking
+if ($lastReport && isset($lastReport['submitted_at'])) {
+    $submittedTime = strtotime($lastReport['submitted_at']);
+    $currentTime = time();
+    // Clear if more than 10 minutes old
+    if (($currentTime - $submittedTime) > 600) {
+        unset($_SESSION['last_report']);
+        $lastReport = null;
+    }
+}
+
 // Transfer any session messages to MessageUtility
 if (isset($_SESSION['success_message'])) {
     MessageUtility::setSuccessMessage($_SESSION['success_message']);
@@ -112,6 +132,8 @@ if (isset($_SESSION['error_message'])) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style/style_report.css">
+    <!-- Session Management -->
+    <script src="js/session-manager.js"></script>
 </head>
 <body>
     <?php include 'Head_and_Foot/header.php'; ?>
@@ -145,9 +167,11 @@ if (isset($_SESSION['error_message'])) {
                 </div>
                 
                 <button type="submit" class="btn btn-submit">Submit Report</button>
-            </form>
-            <?php else: ?>
-                <div class="alert alert-success">
+            </form>            <?php else: ?>
+                <div class="alert alert-success position-relative">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 mt-2 me-2" 
+                            onclick="window.location.href='report.php?new=1'" 
+                            aria-label="Close" title="Submit another report"></button>
                     <h4 class="alert-heading">Report Submitted Successfully!</h4>
                     <p>Report ID: <strong>#<?php echo htmlspecialchars($lastReport['id']); ?></strong></p>
                     <p>Please save this Report ID for future reference.</p>
@@ -157,10 +181,9 @@ if (isset($_SESSION['error_message'])) {
                         <p><strong>Email:</strong> <?php echo htmlspecialchars($lastReport['email']); ?></p>
                         <p><strong>Subject:</strong> <?php echo htmlspecialchars($lastReport['subject']); ?></p>
                         <p><strong>Status:</strong> Under Review</p>
-                    </div>
-                    <p class="note mb-0">Our team will review your report and respond via email.</p>
+                    </div>                    <p class="note mb-0">Our team will review your report and respond via email.</p>
                 </div>
-                <a href="report.php" class="btn btn-primary">Submit Another Report</a>
+                <a href="report.php?new=1" class="btn btn-primary">Submit Another Report</a>
             <?php endif; ?>
         </div>
     </div>
